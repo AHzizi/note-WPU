@@ -34,13 +34,16 @@ export default function App() {
     );
   }
   
+  function handleRemoveItems() {
+    setItems([])
+  }
 
   return (
     <div className="app">
       <Header />
       <Form onAddItem={handleAddItems} />
-      <GroceryList items={Items} onRemoveItem={handleRemoveItems} onToggleItem={handleToggleItem} />
-     <Footer />
+      <GroceryList items={Items} onRemoveItem={handleRemoveItems} onToggleItem={handleToggleItem} onClearItems={handleRemoveItems} />
+     <Footer items={Items} />
     </div>
   );
 }
@@ -88,23 +91,56 @@ function Form({ onAddItem }) {
   )
 }
 
-function GroceryList({ items, onRemoveItem, onToggleItem}) {
+function GroceryList({ items, onRemoveItem, onToggleItem, onClearItems}) {
+
+
+  const [sortBy, setSortBy] = useState('input');
+  
+  let sortedItems;
+
+  // if (sortBy === 'input') {
+  //   sortedItems = items
+  // };
+
+
+  // if (sortBy === 'name') {
+  //   sortedItems = items.slice().sort((a, b) => a.name.localeCompare(b.name))
+  // }
+
+  // if (sortBy === 'checked') {
+  //   sortedItems = items.slice().sort((a, b) => a.checked - b.checked);
+  // }
+
+  switch (sortBy) {
+    case 'name':
+      sortedItems = items.slice().sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'checked':
+      sortedItems = items.slice().sort((a, b) => a.checked - b.checked);
+      break;
+    default:
+      // Default case when sortBy is "input" or any other value
+      sortedItems = items;
+      break;
+  }
+
+
   return (
     <>
       <div className="list">
           <ul>
-          {items.map(item => (
+          {sortedItems.map(item => (
             <Item item={item} key={item.id} onRemoveItem={onRemoveItem} onToggleItem={onToggleItem} />
           ))}
           </ul>
         </div>
         <div className="actions">
-          <select>
+          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
             <option value="input">Urutkan berdasarkan urutan input</option>
             <option value="name">Urutkan berdasarkan nama barang</option>
             <option value="checked">Urutkan berdasarkan ceklis</option>
           </select>
-          <button>Bersihkan Daftar</button>
+          <button onClick={onClearItems}>Bersihkan Daftar</button>
         </div>
     </>
   );
@@ -123,6 +159,17 @@ function Item({item, onRemoveItem, onToggleItem}) {
   )
 }
 
-function Footer() {
-  return  <footer className="stats">Ada 10 barang di daftar belanjaan, 5 barang sudah dibeli (50%)</footer>
+function Footer({ items }) {
+
+  if(items.length === 0) {
+    return <footer className="stats">Daftar Belanja Masih Kosong</footer>
+  }
+
+  const totalItems = items.length;
+  
+  const checkedItems = items.filter(item => item.checked === true).length;
+
+  const percentage = (checkedItems / totalItems) * 100;
+
+  return  <footer className="stats">Ada {totalItems} barang di daftar belanjaan, {checkedItems} barang sudah dibeli ({percentage}%)</footer>
 }
